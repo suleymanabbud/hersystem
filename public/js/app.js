@@ -289,7 +289,7 @@ function showEmployeeModal(employee) {
                 </div>
                 <div>
                     <label class="text-sm text-gray-600">الراتب</label>
-                    <p class="font-semibold">${employee.salary ? employee.salary.toLocaleString('ar') + ' ريال' : '-'}</p>
+                    <p class="font-semibold">${employee.salary ? employee.salary.toLocaleString('ar') + ' ل.س' : '-'}</p>
                 </div>
             </div>
         </div>
@@ -324,7 +324,7 @@ function displayDepartmentsTable(departments) {
             <td class="py-3 px-4">${dept.code || '-'}</td>
             <td class="py-3 px-4">${dept.manager_name || '-'}</td>
             <td class="py-3 px-4">${dept.employee_count}</td>
-            <td class="py-3 px-4">${dept.budget ? dept.budget.toLocaleString('ar') + ' ريال' : '-'}</td>
+            <td class="py-3 px-4">${dept.budget ? dept.budget.toLocaleString('ar') + ' ل.س' : '-'}</td>
             <td class="py-3 px-4">
                 <button onclick="viewDepartment(${dept.id})" class="text-blue-500 hover:text-blue-700 ml-2">
                     <i class="fas fa-eye"></i>

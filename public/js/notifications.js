@@ -58,7 +58,7 @@ function generateSampleNotifications() {
         {
             id: 1,
             title: 'طلب إجازة جديد',
-            message: 'قدم أحمد محمد طلب إجازة سنوية لمدة 5 أيام',
+            message: 'قدم بسام الحلبي طلب إجازة سنوية لمدة 5 أيام',
             type: 'warning',
             is_read: false,
             created_at: new Date(Date.now() - 1000 * 60 * 30).toISOString(), // منذ 30 دقيقة
@@ -76,7 +76,7 @@ function generateSampleNotifications() {
         {
             id: 3,
             title: 'موظف جديد',
-            message: 'تم إضافة موظف جديد: سارة أحمد في قسم تقنية المعلومات',
+            message: 'تم إضافة موظف جديد: سمر الديري في قسم تقنية المعلومات',
             type: 'success',
             is_read: false,
             created_at: new Date(Date.now() - 1000 * 60 * 60 * 5).toISOString(), // منذ 5 ساعات
