@@ -1,0 +1,1347 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام إدارة الموارد البشرية</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            light: '#4A89DC',
+                            DEFAULT: '#3B6FC9',
+                            dark: '#2C5499'
+                        },
+                        secondary: {
+                            light: '#E5E9F0',
+                            DEFAULT: '#D8DEE9',
+                            dark: '#C0C5CE'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&display=swap');
+        
+        body {
+            font-family: 'Tajawal', sans-serif;
+            background-color: #f8fafc;
+        }
+        
+        .dashboard-card {
+            transition: all 0.3s ease;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .sidebar-link {
+            transition: all 0.2s ease;
+        }
+        
+        .sidebar-link:hover {
+            background-color: #3B6FC9;
+            color: white;
+        }
+        
+        .sidebar-link.active {
+            background-color: #3B6FC9;
+            color: white;
+        }
+        
+        .sidebar-sublink:hover {
+            background-color: #E5E9F0;
+        }
+        
+        .sidebar-sublink.active {
+            background-color: #E5E9F0;
+            color: #3B6FC9;
+            font-weight: 600;
+        }
+        
+        .rotate-180 {
+            transform: rotate(180deg);
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #3B6FC9;
+            border-radius: 10px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #2C5499;
+        }
+        
+        /* Modal animations */
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        
+        .modal-content {
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.hidden .modal-content {
+            transform: scale(0.9);
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <script>
+        // إضافة تسجيل خروج
+        function logout() {
+            localStorage.removeItem('authToken');
+            window.location.href = '/login.html';
+        }
+        
+        // دالة لتبديل القوائم الفرعية
+        function toggleSubmenu(submenuId) {
+            const submenu = document.getElementById(submenuId);
+            const icon = document.getElementById(submenuId + '-icon');
+            
+            if (submenu && icon) {
+                if (submenu.classList.contains('hidden')) {
+                    submenu.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                } else {
+                    submenu.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                }
+            }
+        }
+        
+        // دالة إظهار الأقسام
+        function showSection(sectionId) {
+            // إخفاء جميع الأقسام
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+
+            // إظهار القسم المطلوب
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+            }
+
+            // تحديث القائمة الجانبية
+            document.querySelectorAll('.sidebar-link, .sidebar-sublink').forEach(link => {
+                link.classList.remove('active');
+            });
+
+            if (event && event.target) {
+                const clickedLink = event.target.closest('.sidebar-link, .sidebar-sublink');
+                if (clickedLink) {
+                    clickedLink.classList.add('active');
+                }
+            }
+        }
+    </script>
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-primary-dark to-primary-light text-white shadow-md">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center">
+                <svg class="h-10 w-10 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="white"/>
+                    <path d="M12 14C7.58172 14 4 17.5817 4 22H20C20 17.5817 16.4183 14 12 14Z" fill="white"/>
+                </svg>
+                <h1 class="text-2xl font-bold">نظام إدارة الموارد البشرية</h1>
+            </div>
+            <div class="flex items-center">
+                <div class="relative mr-4">
+                    <button class="text-white focus:outline-none">
+                        <i class="fas fa-bell text-xl"></i>
+                        <span class="absolute top-0 right-0 h-4 w-4 bg-red-500 rounded-full text-xs flex items-center justify-center">3</span>
+                    </button>
+                </div>
+                <div class="flex items-center">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSJjdXJyZW50Q29sb3IiIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIiBjbGFzcz0ibHVjaWRlIGx1Y2lkZS11c2VyLWNpcmNsZSI+PGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiLz48Y2lyY2xlIGN4PSIxMiIgY3k9IjEwIiByPSIzIi8+PHBhdGggZD0iTTcgMjAuNjYyVjE5YTIgMiAwIDAgMSAyLTJoNmEyIDIgMCAwIDEgMiAydjEuNjYyIi8+PC9zdmc+" alt="User" class="h-8 w-8 rounded-full bg-white p-1">
+                    <span class="text-white mr-2">مدير النظام</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="flex">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-lg h-screen sticky top-0 overflow-y-auto">
+            <nav class="mt-5 px-2">
+                <a href="#" class="sidebar-link active flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1">
+                    <i class="fas fa-tachometer-alt ml-3"></i>
+                    <span>لوحة التحكم</span>
+                </a>
+                <!-- الهياكل - قائمة منسدلة -->
+                <div class="mb-1">
+                    <button onclick="toggleSubmenu('structures-submenu')" class="sidebar-link flex items-center justify-between px-4 py-3 text-gray-700 rounded-lg w-full hover:bg-primary hover:text-white transition">
+                        <div class="flex items-center">
+                            <i class="fas fa-sitemap ml-3"></i>
+                            <span>الهياكل</span>
+                        </div>
+                        <i class="fas fa-chevron-down transition-transform" id="structures-submenu-icon"></i>
+                    </button>
+                    <div id="structures-submenu" class="hidden pr-8 mt-1 space-y-1">
+                        <a href="#" class="sidebar-sublink flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition" onclick="showSection('org-structure')">
+                            <i class="fas fa-chart-line ml-2 text-sm"></i>
+                            <span>الهيكل التنظيمي</span>
+                        </a>
+                        <a href="#" class="sidebar-sublink flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition" onclick="showSection('job-structure')">
+                            <i class="fas fa-briefcase ml-2 text-sm"></i>
+                            <span>الهيكل الوظيفي</span>
+                        </a>
+                        <a href="#" class="sidebar-sublink flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition" onclick="showSection('structure-guide')">
+                            <i class="fas fa-book ml-2 text-sm"></i>
+                            <span>دليل الهيكل</span>
+                        </a>
+                    </div>
+                </div>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('job-analysis')">
+                    <i class="fas fa-tasks ml-3"></i>
+                    <span>التحليل والتوصيف الوظيفي</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('hr-planning')">
+                    <i class="fas fa-project-diagram ml-3"></i>
+                    <span>تخطيط الموارد البشرية</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('recruitment')">
+                    <i class="fas fa-user-plus ml-3"></i>
+                    <span>الاستقطاب والتوظيف</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('training')">
+                    <i class="fas fa-graduation-cap ml-3"></i>
+                    <span>التدريب والتطوير</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('performance')">
+                    <i class="fas fa-chart-line ml-3"></i>
+                    <span>تقييم الأداء</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('employee-data')">
+                    <i class="fas fa-id-card ml-3"></i>
+                    <span>بيانات الموظفين</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('attendance')">
+                    <i class="fas fa-calendar-check ml-3"></i>
+                    <span>إدارة الدوام</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('salary')">
+                    <i class="fas fa-money-bill-wave ml-3"></i>
+                    <span>الرواتب والأجور</span>
+                </a>
+                <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('settings')">
+                    <i class="fas fa-cog ml-3"></i>
+                    <span>الإعدادات</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-6">
+            <!-- Dashboard Section -->
+            <section id="dashboard" class="section active">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">لوحة التحكم</h2>
+                    <div class="flex">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-download ml-2"></i>
+                            <span>تصدير التقارير</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Stats Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+                    <div class="dashboard-card bg-white rounded-lg shadow-md p-6 border-r-4 border-blue-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">إجمالي الموظفين</p>
+                                <h3 class="text-2xl font-bold text-gray-800">3,000</h3>
+                                <p class="text-xs text-green-500 mt-1">
+                                    <i class="fas fa-arrow-up ml-1"></i>
+                                    <span>5% من الشهر الماضي</span>
+                                </p>
+                            </div>
+                            <div class="bg-blue-100 p-3 rounded-full">
+                                <i class="fas fa-users text-blue-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card bg-white rounded-lg shadow-md p-6 border-r-4 border-green-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">معدل الدوران الوظيفي</p>
+                                <h3 class="text-2xl font-bold text-gray-800">2.4%</h3>
+                                <p class="text-xs text-green-500 mt-1">
+                                    <i class="fas fa-arrow-down ml-1"></i>
+                                    <span>1.2% من الشهر الماضي</span>
+                                </p>
+                            </div>
+                            <div class="bg-green-100 p-3 rounded-full">
+                                <i class="fas fa-exchange-alt text-green-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card bg-white rounded-lg shadow-md p-6 border-r-4 border-purple-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">الوظائف الشاغرة</p>
+                                <h3 class="text-2xl font-bold text-gray-800">24</h3>
+                                <p class="text-xs text-red-500 mt-1">
+                                    <i class="fas fa-arrow-up ml-1"></i>
+                                    <span>3 من الأسبوع الماضي</span>
+                                </p>
+                            </div>
+                            <div class="bg-purple-100 p-3 rounded-full">
+                                <i class="fas fa-briefcase text-purple-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card bg-white rounded-lg shadow-md p-6 border-r-4 border-yellow-500">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-sm text-gray-500">برامج تدريبية نشطة</p>
+                                <h3 class="text-2xl font-bold text-gray-800">12</h3>
+                                <p class="text-xs text-green-500 mt-1">
+                                    <i class="fas fa-arrow-up ml-1"></i>
+                                    <span>2 من الشهر الماضي</span>
+                                </p>
+                            </div>
+                            <div class="bg-yellow-100 p-3 rounded-full">
+                                <i class="fas fa-graduation-cap text-yellow-500 text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Row -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">توزيع الموظفين حسب الإدارات</h3>
+                        <div class="chart-container">
+                            <canvas id="departmentChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">معدل الأداء السنوي</h3>
+                        <div class="chart-container">
+                            <canvas id="performanceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Activities & Upcoming Events -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">آخر النشاطات</h3>
+                            <a href="#" class="text-primary hover:text-primary-dark text-sm">عرض الكل</a>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="bg-blue-100 p-2 rounded-full ml-3">
+                                    <i class="fas fa-user-plus text-blue-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-800">تم تعيين <span class="font-semibold">أحمد محمد</span> في قسم تقنية المعلومات</p>
+                                    <p class="text-xs text-gray-500">منذ ساعتين</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-green-100 p-2 rounded-full ml-3">
+                                    <i class="fas fa-graduation-cap text-green-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-800">اكتمال برنامج <span class="font-semibold">القيادة الإدارية</span> بنجاح</p>
+                                    <p class="text-xs text-gray-500">منذ 5 ساعات</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-yellow-100 p-2 rounded-full ml-3">
+                                    <i class="fas fa-clipboard-check text-yellow-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-800">تم إكمال تقييم الأداء لقسم <span class="font-semibold">الموارد البشرية</span></p>
+                                    <p class="text-xs text-gray-500">منذ يوم واحد</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="bg-red-100 p-2 rounded-full ml-3">
+                                    <i class="fas fa-exclamation-triangle text-red-500"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-800">تنبيه: <span class="font-semibold">5 موظفين</span> تنتهي عقودهم خلال الشهر القادم</p>
+                                    <p class="text-xs text-gray-500">منذ يومين</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold text-gray-800">الأحداث القادمة</h3>
+                            <a href="#" class="text-primary hover:text-primary-dark text-sm">عرض الكل</a>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="flex items-center p-3 bg-blue-50 rounded-lg">
+                                <div class="bg-white p-2 rounded-lg shadow-sm ml-3 text-center min-w-[50px]">
+                                    <p class="text-xs text-gray-500">يونيو</p>
+                                    <p class="text-lg font-bold text-primary">15</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">ورشة عمل تطوير المهارات القيادية</h4>
+                                    <p class="text-sm text-gray-600">09:00 ص - 03:00 م | قاعة التدريب الرئيسية</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center p-3 bg-green-50 rounded-lg">
+                                <div class="bg-white p-2 rounded-lg shadow-sm ml-3 text-center min-w-[50px]">
+                                    <p class="text-xs text-gray-500">يونيو</p>
+                                    <p class="text-lg font-bold text-primary">18</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">اجتماع مراجعة الأداء الربع سنوي</h4>
+                                    <p class="text-sm text-gray-600">10:30 ص - 12:00 م | قاعة الاجتماعات</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center p-3 bg-purple-50 rounded-lg">
+                                <div class="bg-white p-2 rounded-lg shadow-sm ml-3 text-center min-w-[50px]">
+                                    <p class="text-xs text-gray-500">يونيو</p>
+                                    <p class="text-lg font-bold text-primary">22</p>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">يوم التوظيف المفتوح</h4>
+                                    <p class="text-sm text-gray-600">09:00 ص - 04:00 م | البهو الرئيسي</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Job Structure Section -->
+            <section id="job-structure" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">الهيكل الوظيفي</h2>
+                    <div class="flex space-x-2 space-x-reverse">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-plus ml-2"></i>
+                            <span>إضافة وظيفة</span>
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-download ml-2"></i>
+                            <span>تصدير</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">جميع الوظائف</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="py-3 px-4 text-right">المسمى الوظيفي</th>
+                                    <th class="py-3 px-4 text-right">الرمز</th>
+                                    <th class="py-3 px-4 text-right">القسم</th>
+                                    <th class="py-3 px-4 text-right">المستوى</th>
+                                    <th class="py-3 px-4 text-right">عدد الشاغرين</th>
+                                    <th class="py-3 px-4 text-right">نطاق الراتب</th>
+                                    <th class="py-3 px-4 text-right">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="py-3 px-4 font-semibold">مدير موارد بشرية</td>
+                                    <td class="py-3 px-4">HR-MGR</td>
+                                    <td class="py-3 px-4">الموارد البشرية</td>
+                                    <td class="py-3 px-4"><span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs">إدارة</span></td>
+                                    <td class="py-3 px-4">1</td>
+                                    <td class="py-3 px-4">15,000 - 20,000 ريال</td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 ml-2"><i class="fas fa-edit"></i></button>
+                                        <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-semibold">أخصائي توظيف</td>
+                                    <td class="py-3 px-4">HR-REC</td>
+                                    <td class="py-3 px-4">الموارد البشرية</td>
+                                    <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">تنفيذي</span></td>
+                                    <td class="py-3 px-4">3</td>
+                                    <td class="py-3 px-4">7,000 - 10,000 ريال</td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 ml-2"><i class="fas fa-edit"></i></button>
+                                        <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-semibold">مطور برمجيات</td>
+                                    <td class="py-3 px-4">IT-DEV</td>
+                                    <td class="py-3 px-4">تقنية المعلومات</td>
+                                    <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">تنفيذي</span></td>
+                                    <td class="py-3 px-4">12</td>
+                                    <td class="py-3 px-4">8,000 - 12,000 ريال</td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 ml-2"><i class="fas fa-edit"></i></button>
+                                        <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4 font-semibold">محلل مالي</td>
+                                    <td class="py-3 px-4">FIN-AN</td>
+                                    <td class="py-3 px-4">المالية</td>
+                                    <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">تنفيذي</span></td>
+                                    <td class="py-3 px-4">5</td>
+                                    <td class="py-3 px-4">7,000 - 10,000 ريال</td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2"><i class="fas fa-eye"></i></button>
+                                        <button class="text-green-500 hover:text-green-700 ml-2"><i class="fas fa-edit"></i></button>
+                                        <button class="text-red-500 hover:text-red-700"><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Structure Guide Section -->
+            <section id="structure-guide" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">دليل الهيكل</h2>
+                    <div class="flex space-x-2 space-x-reverse">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-download ml-2"></i>
+                            <span>تحميل الدليل (PDF)</span>
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-print ml-2"></i>
+                            <span>طباعة</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-blue-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-building text-primary text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">الإدارات</h3>
+                                <p class="text-3xl font-bold text-primary">5</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">إجمالي الإدارات في المنظمة</p>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-briefcase text-green-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">الوظائف</h3>
+                                <p class="text-3xl font-bold text-green-600">45</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">عدد المسميات الوظيفية</p>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-purple-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-layer-group text-purple-600 text-2xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-semibold text-gray-800">المستويات</h3>
+                                <p class="text-3xl font-bold text-purple-600">3</p>
+                            </div>
+                        </div>
+                        <p class="text-sm text-gray-600">المستويات الوظيفية</p>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">دليل الهيكل التنظيمي والوظيفي</h3>
+                    <div class="prose max-w-none">
+                        <p class="text-gray-600 mb-4">
+                            هذا الدليل يوضح البنية التنظيمية والوظيفية الكاملة للمنظمة، ويشمل جميع الإدارات والأقسام والوظائف المختلفة.
+                        </p>
+                        
+                        <div class="bg-blue-50 border-r-4 border-blue-500 p-4 mb-4">
+                            <h4 class="font-semibold text-blue-900 mb-2">الهيكل التنظيمي</h4>
+                            <p class="text-blue-800 text-sm">يوضح التسلسل الإداري والعلاقات التنظيمية بين الإدارات والأقسام المختلفة</p>
+                        </div>
+
+                        <div class="bg-green-50 border-r-4 border-green-500 p-4 mb-4">
+                            <h4 class="font-semibold text-green-900 mb-2">الهيكل الوظيفي</h4>
+                            <p class="text-green-800 text-sm">يحدد المسميات الوظيفية والمستويات والمهام والمسؤوليات لكل وظيفة</p>
+                        </div>
+
+                        <div class="bg-purple-50 border-r-4 border-purple-500 p-4">
+                            <h4 class="font-semibold text-purple-900 mb-2">المستويات الوظيفية</h4>
+                            <ul class="list-disc list-inside text-purple-800 text-sm space-y-1">
+                                <li><strong>المستوى الإداري:</strong> المديرون التنفيذيون والمديرون العامون</li>
+                                <li><strong>المستوى الإشرافي:</strong> رؤساء الأقسام والمشرفون</li>
+                                <li><strong>المستوى التنفيذي:</strong> الموظفون والأخصائيون</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">الوثائق المرفقة</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-pdf text-red-500 text-2xl ml-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">دليل الهيكل التنظيمي الكامل</h4>
+                                    <p class="text-sm text-gray-600">PDF - 2.5 MB</p>
+                                </div>
+                            </div>
+                            <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-download ml-1"></i> تحميل
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-excel text-green-500 text-2xl ml-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">قائمة الوظائف والمهام</h4>
+                                    <p class="text-sm text-gray-600">Excel - 1.8 MB</p>
+                                </div>
+                            </div>
+                            <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-download ml-1"></i> تحميل
+                            </button>
+                        </div>
+
+                        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                            <div class="flex items-center">
+                                <i class="fas fa-file-word text-blue-500 text-2xl ml-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">التوصيف الوظيفي المفصل</h4>
+                                    <p class="text-sm text-gray-600">Word - 3.2 MB</p>
+                                </div>
+                            </div>
+                            <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm">
+                                <i class="fas fa-download ml-1"></i> تحميل
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Organizational Structure Section -->
+            <section id="org-structure" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">الهيكل التنظيمي</h2>
+                    <div class="flex space-x-2 space-x-reverse">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center" onclick="showModal('add-department-modal')">
+                            <i class="fas fa-plus ml-2"></i>
+                            <span>إضافة إدارة</span>
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-download ml-2"></i>
+                            <span>تصدير الهيكل</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">الهيكل التنظيمي الحالي</h3>
+                        <div class="flex space-x-2 space-x-reverse">
+                            <button class="text-primary hover:text-primary-dark">
+                                <i class="fas fa-expand-arrows-alt"></i>
+                            </button>
+                            <button class="text-primary hover:text-primary-dark">
+                                <i class="fas fa-print"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div class="org-chart-container min-h-[500px] min-w-[800px] p-4">
+                            <div class="flex justify-center">
+                                <div class="bg-primary text-white p-4 rounded-lg shadow-lg text-center w-64">
+                                    <h4 class="font-bold">الرئيس التنفيذي</h4>
+                                    <p class="text-sm">أحمد محمد العمري</p>
+                                </div>
+                            </div>
+                            <div class="flex justify-center mt-8">
+                                <div class="border-r-2 border-primary h-8"></div>
+                            </div>
+                            <div class="flex justify-center">
+                                <div class="grid grid-cols-4 gap-32">
+                                    <div class="flex flex-col items-center">
+                                        <div class="border-r-2 border-primary h-8"></div>
+                                        <div class="bg-blue-100 text-primary p-3 rounded-lg shadow-md text-center w-48">
+                                            <h4 class="font-bold">نائب الرئيس للعمليات</h4>
+                                            <p class="text-sm">سارة أحمد الزهراني</p>
+                                        </div>
+                                        <div class="border-r-2 border-primary h-8 mt-4"></div>
+                                        <div class="grid grid-cols-2 gap-4 mt-4">
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">إدارة الإنتاج</h5>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">إدارة الجودة</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="border-r-2 border-primary h-8"></div>
+                                        <div class="bg-blue-100 text-primary p-3 rounded-lg shadow-md text-center w-48">
+                                            <h4 class="font-bold">نائب الرئيس للمالية</h4>
+                                            <p class="text-sm">خالد عبدالله السالم</p>
+                                        </div>
+                                        <div class="border-r-2 border-primary h-8 mt-4"></div>
+                                        <div class="grid grid-cols-2 gap-4 mt-4">
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">المحاسبة</h5>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">التخطيط المالي</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="border-r-2 border-primary h-8"></div>
+                                        <div class="bg-blue-100 text-primary p-3 rounded-lg shadow-md text-center w-48">
+                                            <h4 class="font-bold">نائب الرئيس للتسويق</h4>
+                                            <p class="text-sm">نورة محمد القحطاني</p>
+                                        </div>
+                                        <div class="border-r-2 border-primary h-8 mt-4"></div>
+                                        <div class="grid grid-cols-2 gap-4 mt-4">
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">التسويق الرقمي</h5>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">المبيعات</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex flex-col items-center">
+                                        <div class="border-r-2 border-primary h-8"></div>
+                                        <div class="bg-blue-100 text-primary p-3 rounded-lg shadow-md text-center w-48">
+                                            <h4 class="font-bold">نائب الرئيس للموارد البشرية</h4>
+                                            <p class="text-sm">فهد سعد العتيبي</p>
+                                        </div>
+                                        <div class="border-r-2 border-primary h-8 mt-4"></div>
+                                        <div class="grid grid-cols-2 gap-4 mt-4">
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">التوظيف</h5>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-col items-center">
+                                                <div class="border-r-2 border-primary h-8"></div>
+                                                <div class="bg-blue-50 text-primary p-2 rounded-lg shadow-sm text-center w-32">
+                                                    <h5 class="font-semibold text-sm">التدريب</h5>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">المسميات الوظيفية</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="py-3 px-4 text-right">المسمى الوظيفي</th>
+                                        <th class="py-3 px-4 text-right">الإدارة</th>
+                                        <th class="py-3 px-4 text-right">عدد الشاغلين</th>
+                                        <th class="py-3 px-4 text-right">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="py-3 px-4">مدير إدارة</td>
+                                        <td class="py-3 px-4">الموارد البشرية</td>
+                                        <td class="py-3 px-4">1</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">أخصائي توظيف</td>
+                                        <td class="py-3 px-4">الموارد البشرية</td>
+                                        <td class="py-3 px-4">3</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">مدير مالي</td>
+                                        <td class="py-3 px-4">المالية</td>
+                                        <td class="py-3 px-4">1</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">مهندس برمجيات</td>
+                                        <td class="py-3 px-4">تقنية المعلومات</td>
+                                        <td class="py-3 px-4">12</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">مدير مشروع</td>
+                                        <td class="py-3 px-4">تقنية المعلومات</td>
+                                        <td class="py-3 px-4">4</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mt-4 flex justify-center">
+                            <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg" onclick="showModal('add-job-title-modal')">
+                                إضافة مسمى وظيفي
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">الإدارات</h3>
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full bg-white">
+                                <thead class="bg-gray-100">
+                                    <tr>
+                                        <th class="py-3 px-4 text-right">اسم الإدارة</th>
+                                        <th class="py-3 px-4 text-right">المدير</th>
+                                        <th class="py-3 px-4 text-right">عدد الموظفين</th>
+                                        <th class="py-3 px-4 text-right">الإجراءات</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <tr>
+                                        <td class="py-3 px-4">الموارد البشرية</td>
+                                        <td class="py-3 px-4">فهد سعد العتيبي</td>
+                                        <td class="py-3 px-4">45</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">تقنية المعلومات</td>
+                                        <td class="py-3 px-4">محمد علي الشهري</td>
+                                        <td class="py-3 px-4">78</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">المالية</td>
+                                        <td class="py-3 px-4">خالد عبدالله السالم</td>
+                                        <td class="py-3 px-4">32</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">التسويق</td>
+                                        <td class="py-3 px-4">نورة محمد القحطاني</td>
+                                        <td class="py-3 px-4">41</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-3 px-4">العمليات</td>
+                                        <td class="py-3 px-4">سارة أحمد الزهراني</td>
+                                        <td class="py-3 px-4">120</td>
+                                        <td class="py-3 px-4">
+                                            <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="text-red-500 hover:text-red-700">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Job Analysis Section -->
+            <section id="job-analysis" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">التحليل والتوصيف الوظيفي</h2>
+                    <div class="flex space-x-2 space-x-reverse">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center" onclick="showModal('add-job-description-modal')">
+                            <i class="fas fa-plus ml-2"></i>
+                            <span>إضافة توصيف وظيفي</span>
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-download ml-2"></i>
+                            <span>تصدير البيانات</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <div class="flex mb-4">
+                        <div class="w-full">
+                            <div class="relative">
+                                <input type="text" placeholder="البحث عن وظيفة..." class="w-full pr-10 pl-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-primary">
+                                <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="mr-2">
+                            <select class="border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-primary">
+                                <option value="">جميع الإدارات</option>
+                                <option value="hr">الموارد البشرية</option>
+                                <option value="it">تقنية المعلومات</option>
+                                <option value="finance">المالية</option>
+                                <option value="marketing">التسويق</option>
+                                <option value="operations">العمليات</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="py-3 px-4 text-right">المسمى الوظيفي</th>
+                                    <th class="py-3 px-4 text-right">الإدارة</th>
+                                    <th class="py-3 px-4 text-right">تاريخ التحديث</th>
+                                    <th class="py-3 px-4 text-right">الحالة</th>
+                                    <th class="py-3 px-4 text-right">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="py-3 px-4">أخصائي موارد بشرية</td>
+                                    <td class="py-3 px-4">الموارد البشرية</td>
+                                    <td class="py-3 px-4">15/05/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">مكتمل</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2" onclick="showJobDescription('specialist')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">مدير موارد بشرية</td>
+                                    <td class="py-3 px-4">الموارد البشرية</td>
+                                    <td class="py-3 px-4">10/04/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">مكتمل</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2" onclick="showJobDescription('manager')">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">مطور برمجيات</td>
+                                    <td class="py-3 px-4">تقنية المعلومات</td>
+                                    <td class="py-3 px-4">22/05/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">قيد المراجعة</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">محلل مالي</td>
+                                    <td class="py-3 px-4">المالية</td>
+                                    <td class="py-3 px-4">05/06/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">مسودة</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">مدير تسويق</td>
+                                    <td class="py-3 px-4">التسويق</td>
+                                    <td class="py-3 px-4">18/03/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">مكتمل</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-4 flex justify-center">
+                        <nav class="flex items-center">
+                            <button class="px-3 py-1 rounded-l-lg border bg-gray-100">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <button class="px-3 py-1 border-t border-b bg-primary text-white">1</button>
+                            <button class="px-3 py-1 border-t border-b">2</button>
+                            <button class="px-3 py-1 border-t border-b">3</button>
+                            <button class="px-3 py-1 rounded-r-lg border bg-gray-100">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-blue-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-file-alt text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">إجمالي التوصيفات الوظيفية</h3>
+                                <p class="text-2xl font-bold text-primary">124</p>
+                            </div>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full">
+                            <div class="h-2 bg-primary rounded-full" style="width: 85%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">85% من الوظائف تم توصيفها</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">التوصيفات المكتملة</h3>
+                                <p class="text-2xl font-bold text-green-600">98</p>
+                            </div>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full">
+                            <div class="h-2 bg-green-500 rounded-full" style="width: 79%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">79% من التوصيفات مكتملة</p>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-yellow-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-clock text-yellow-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">قيد المراجعة</h3>
+                                <p class="text-2xl font-bold text-yellow-600">26</p>
+                            </div>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full">
+                            <div class="h-2 bg-yellow-500 rounded-full" style="width: 21%"></div>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-2">21% من التوصيفات قيد المراجعة</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- HR Planning Section -->
+            <section id="hr-planning" class="section hidden">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800">تخطيط الموارد البشرية</h2>
+                    <div class="flex space-x-2 space-x-reverse">
+                        <button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg flex items-center" onclick="showModal('add-plan-modal')">
+                            <i class="fas fa-plus ml-2"></i>
+                            <span>خطة جديدة</span>
+                        </button>
+                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg flex items-center">
+                            <i class="fas fa-download ml-2"></i>
+                            <span>تصدير البيانات</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-blue-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-users text-primary text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">إجمالي القوى العاملة</h3>
+                                <p class="text-2xl font-bold text-primary">3,000</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>الهدف: 3,200</span>
+                            <span>94% مكتمل</span>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full mt-2">
+                            <div class="h-2 bg-primary rounded-full" style="width: 94%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-green-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-user-plus text-green-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">التوظيف المخطط</h3>
+                                <p class="text-2xl font-bold text-green-600">250</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>تم التوظيف: 180</span>
+                            <span>72% مكتمل</span>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full mt-2">
+                            <div class="h-2 bg-green-500 rounded-full" style="width: 72%"></div>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center mb-4">
+                            <div class="bg-red-100 p-3 rounded-full ml-3">
+                                <i class="fas fa-user-minus text-red-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-800">معدل الدوران المتوقع</h3>
+                                <p class="text-2xl font-bold text-red-600">5.2%</p>
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-sm text-gray-500">
+                            <span>المستهدف: 4%</span>
+                            <span>130% من الهدف</span>
+                        </div>
+                        <div class="h-2 bg-gray-200 rounded-full mt-2">
+                            <div class="h-2 bg-red-500 rounded-full" style="width: 100%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">توزيع القوى العاملة حسب الإدارة</h3>
+                        <div class="chart-container">
+                            <canvas id="workforceChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">توقعات النمو (5 سنوات)</h3>
+                        <div class="chart-container">
+                            <canvas id="growthChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">خطط التوظيف الحالية</h3>
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full bg-white">
+                            <thead class="bg-gray-100">
+                                <tr>
+                                    <th class="py-3 px-4 text-right">الإدارة</th>
+                                    <th class="py-3 px-4 text-right">المسمى الوظيفي</th>
+                                    <th class="py-3 px-4 text-right">العدد المطلوب</th>
+                                    <th class="py-3 px-4 text-right">تاريخ البدء</th>
+                                    <th class="py-3 px-4 text-right">الحالة</th>
+                                    <th class="py-3 px-4 text-right">الإجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr>
+                                    <td class="py-3 px-4">تقنية المعلومات</td>
+                                    <td class="py-3 px-4">مطور برمجيات</td>
+                                    <td class="py-3 px-4">8</td>
+                                    <td class="py-3 px-4">01/07/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-green-100 text-green-800 text-xs font-semibold px-2 py-1 rounded">جاري التوظيف</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">التسويق</td>
+                                    <td class="py-3 px-4">أخصائي تسويق رقمي</td>
+                                    <td class="py-3 px-4">3</td>
+                                    <td class="py-3 px-4">15/07/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">معتمدة</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">المالية</td>
+                                    <td class="py-3 px-4">محلل مالي</td>
+                                    <td class="py-3 px-4">2</td>
+                                    <td class="py-3 px-4">01/08/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-2 py-1 rounded">قيد المراجعة</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="py-3 px-4">الموارد البشرية</td>
+                                    <td class="py-3 px-4">أخصائي تدريب</td>
+                                    <td class="py-3 px-4">1</td>
+                                    <td class="py-3 px-4">15/08/2023</td>
+                                    <td class="py-3 px-4"><span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2 py-1 rounded">معتمدة</span></td>
+                                    <td class="py-3 px-4">
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="text-blue-500 hover:text-blue-700 ml-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </td>
+                                </t

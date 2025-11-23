@@ -1,0 +1,74 @@
+<!-- Sidebar -->
+<aside class="w-64 bg-white shadow-lg h-screen sticky top-0 overflow-y-auto">
+    <nav class="mt-5 px-2">
+        <a href="#" class="sidebar-link active flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('dashboard')">
+            <i class="fas fa-tachometer-alt ml-3"></i>
+            <span>لوحة التحكم</span>
+        </a>
+        
+        <!-- الهياكل - قائمة منسدلة -->
+        <div class="mb-1">
+            <button onclick="toggleSubmenu('structures-submenu')" class="sidebar-link flex items-center justify-between px-4 py-3 text-gray-700 rounded-lg w-full hover:bg-primary hover:text-white transition">
+                <div class="flex items-center">
+                    <i class="fas fa-sitemap ml-3"></i>
+                    <span>الهياكل</span>
+                </div>
+                <i class="fas fa-chevron-down transition-transform" id="structures-submenu-icon"></i>
+            </button>
+            <div id="structures-submenu" class="hidden pr-8 mt-1 space-y-1">
+                <a href="#" class="sidebar-sublink flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition" onclick="showSection('org-structure')">
+                    <i class="fas fa-chart-line ml-2 text-sm"></i>
+                    <span>الهيكل التنظيمي</span>
+                </a>
+                <a href="#" class="sidebar-sublink flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition" onclick="showSection('job-structure')">
+                    <i class="fas fa-briefcase ml-2 text-sm"></i>
+                    <span>الهيكل الوظيفي</span>
+                </a>
+                <a href="#" class="sidebar-sublink flex items-center px-4 py-2 text-gray-600 rounded-lg hover:bg-gray-100 transition" onclick="showSection('structure-guide')">
+                    <i class="fas fa-book ml-2 text-sm"></i>
+                    <span>دليل الهيكل</span>
+                </a>
+            </div>
+        </div>
+        
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('job-analysis')">
+            <i class="fas fa-tasks ml-3"></i>
+            <span>التحليل والتوصيف الوظيفي</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('hr-planning')">
+            <i class="fas fa-project-diagram ml-3"></i>
+            <span>تخطيط الموارد البشرية</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('recruitment')">
+            <i class="fas fa-user-plus ml-3"></i>
+            <span>الاستقطاب والتوظيف</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('training')">
+            <i class="fas fa-graduation-cap ml-3"></i>
+            <span>التدريب والتطوير</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('performance')">
+            <i class="fas fa-chart-line ml-3"></i>
+            <span>تقييم الأداء</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('employee-data')">
+            <i class="fas fa-id-card ml-3"></i>
+            <span>بيانات الموظفين</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('attendance')">
+            <i class="fas fa-calendar-check ml-3"></i>
+            <span>إدارة الدوام</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('salary')">
+            <i class="fas fa-money-bill-wave ml-3"></i>
+            <span>الرواتب والأجور</span>
+        </a>
+        <a href="#" class="sidebar-link flex items-center px-4 py-3 text-gray-700 rounded-lg mb-1" onclick="showSection('settings')">
+            <i class="fas fa-cog ml-3"></i>
+            <span>الإعدادات</span>
+        </a>
+    </nav>
+</aside>
+
+
+
