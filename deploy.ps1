@@ -1,71 +1,72 @@
-# سكريبت رفع المشروع على GitHub
-# استخدم: .\deploy.ps1
+# HR System Deployment Script
+# Usage: .\deploy.ps1
 
-Write-Host "🚀 بدء رفع المشروع على GitHub..." -ForegroundColor Green
+Write-Host "Starting deployment to GitHub..." -ForegroundColor Green
 
-# التحقق من Git
+# Check if Git is installed
 if (-not (Get-Command git -ErrorAction SilentlyContinue)) {
-    Write-Host "❌ Git غير مثبت! يرجى تثبيته من: https://git-scm.com" -ForegroundColor Red
+    Write-Host "ERROR: Git is not installed!" -ForegroundColor Red
+    Write-Host "Download from: https://git-scm.com" -ForegroundColor Yellow
     exit
 }
 
-# تهيئة Git إن لم يكن موجوداً
+# Initialize Git if not exists
 if (-not (Test-Path .git)) {
-    Write-Host "📦 تهيئة Git..." -ForegroundColor Yellow
+    Write-Host "Initializing Git..." -ForegroundColor Yellow
     git init
 }
 
-# إضافة جميع الملفات
-Write-Host "📝 إضافة الملفات..." -ForegroundColor Yellow
+# Add all files
+Write-Host "Adding files..." -ForegroundColor Yellow
 git add .
 
 # Commit
-Write-Host "💾 حفظ التغييرات..." -ForegroundColor Yellow
-$commitMessage = Read-Host "أدخل رسالة الـ Commit (أو اضغط Enter للاستخدام الافتراضي)"
+Write-Host "Committing changes..." -ForegroundColor Yellow
+$commitMessage = Read-Host "Enter commit message (or press Enter for default)"
 if ([string]::IsNullOrWhiteSpace($commitMessage)) {
-    $commitMessage = "نظام إدارة الموارد البشرية - تحديث"
+    $commitMessage = "HR System - Update"
 }
 git commit -m $commitMessage
 
-# التحقق من Remote
+# Check remote
 $remoteUrl = git remote get-url origin 2>$null
 if ($null -eq $remoteUrl) {
-    Write-Host "🔗 لم يتم ربط المشروع بـ GitHub بعد!" -ForegroundColor Yellow
     Write-Host ""
-    Write-Host "الخطوات:" -ForegroundColor Cyan
-    Write-Host "1. اذهب إلى: https://github.com/new" -ForegroundColor White
-    Write-Host "2. أنشئ مستودع جديد باسم: hr-system" -ForegroundColor White
-    Write-Host "3. انسخ الرابط (مثل: https://github.com/YOUR_USERNAME/hr-system.git)" -ForegroundColor White
+    Write-Host "Project not connected to GitHub yet!" -ForegroundColor Yellow
     Write-Host ""
-    $repoUrl = Read-Host "أدخل رابط المستودع"
+    Write-Host "Steps:" -ForegroundColor Cyan
+    Write-Host "1. Go to: https://github.com/new" -ForegroundColor White
+    Write-Host "2. Create new repository: hr-system" -ForegroundColor White
+    Write-Host "3. Copy the repository URL" -ForegroundColor White
+    Write-Host ""
+    $repoUrl = Read-Host "Enter repository URL"
     
     if ($repoUrl) {
         git remote add origin $repoUrl
         git branch -M main
-        Write-Host "✅ تم ربط المشروع!" -ForegroundColor Green
+        Write-Host "Connected successfully!" -ForegroundColor Green
     } else {
-        Write-Host "❌ تم إلغاء العملية" -ForegroundColor Red
+        Write-Host "Operation cancelled" -ForegroundColor Red
         exit
     }
 }
 
-# رفع الملفات
-Write-Host "⬆️  رفع الملفات إلى GitHub..." -ForegroundColor Yellow
+# Push to GitHub
+Write-Host "Pushing to GitHub..." -ForegroundColor Yellow
 git push -u origin main
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
-    Write-Host "✅ تم رفع المشروع بنجاح!" -ForegroundColor Green
+    Write-Host "Successfully pushed to GitHub!" -ForegroundColor Green
     Write-Host ""
-    Write-Host "📋 الخطوات التالية:" -ForegroundColor Cyan
-    Write-Host "1. اذهب إلى: https://render.com" -ForegroundColor White
-    Write-Host "2. سجّل بحساب GitHub" -ForegroundColor White
-    Write-Host "3. New → Web Service" -ForegroundColor White
-    Write-Host "4. اربط المستودع" -ForegroundColor White
+    Write-Host "Next steps:" -ForegroundColor Cyan
+    Write-Host "1. Go to: https://render.com" -ForegroundColor White
+    Write-Host "2. Sign up with GitHub" -ForegroundColor White
+    Write-Host "3. New -> Web Service" -ForegroundColor White
+    Write-Host "4. Connect repository" -ForegroundColor White
     Write-Host "5. Start Command: python app.py" -ForegroundColor White
     Write-Host ""
-    Write-Host "🎉 ستحصل على رابط مباشر للمشروع!" -ForegroundColor Green
+    Write-Host "You will get a live URL!" -ForegroundColor Green
 } else {
-    Write-Host "❌ حدث خطأ في الرفع. تحقق من الإعدادات." -ForegroundColor Red
+    Write-Host "Error pushing. Check your settings." -ForegroundColor Red
 }
-
