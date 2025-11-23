@@ -1,4 +1,12 @@
-const API_BASE_URL = 'http://localhost:3000/api';
+// اكتشاف رابط API تلقائياً
+const API_BASE_URL = (() => {
+    // إذا كنا على localhost، استخدم localhost:3000
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:3000/api';
+    }
+    // وإلا استخدم نفس النطاق (للمواقع المنشورة)
+    return `${window.location.origin}/api`;
+})();
 
 // معالجة نموذج تسجيل الدخول
 document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
@@ -40,7 +48,14 @@ document.getElementById('loginForm')?.addEventListener('submit', async (e) => {
         }
     } catch (error) {
         console.error('خطأ في تسجيل الدخول:', error);
-        errorMessage.textContent = 'حدث خطأ في الاتصال بالخادم';
+        console.error('API URL:', API_BASE_URL);
+        
+        // رسالة خطأ أوضح
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+            errorMessage.textContent = 'لا يمكن الاتصال بالخادم. تأكد من أن الخادم يعمل على: ' + API_BASE_URL;
+        } else {
+            errorMessage.textContent = 'حدث خطأ في الاتصال بالخادم: ' + error.message;
+        }
         errorMessage.classList.remove('hidden');
     } finally {
         // إعادة تفعيل الزر

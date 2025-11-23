@@ -1,5 +1,13 @@
 // الإعدادات العامة
-const API_BASE_URL = 'http://localhost:3000/api';
+// اكتشاف رابط API تلقائياً
+const API_BASE_URL = (() => {
+    // إذا كنا على localhost، استخدم localhost:3000
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:3000/api';
+    }
+    // وإلا استخدم نفس النطاق (للمواقع المنشورة)
+    return `${window.location.origin}/api`;
+})();
 let authToken = localStorage.getItem('authToken');
 let currentUser = null;
 
