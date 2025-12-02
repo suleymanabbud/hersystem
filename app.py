@@ -76,6 +76,8 @@ with app.app_context():
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 3000))
+    debug = os.getenv('FLASK_ENV') != 'production'
+    
     print(f"\n🚀 السيرفر يعمل على المنفذ {port}")
     print(f"📱 افتح المتصفح على: http://localhost:{port}")
     print(f"📚 API متاح على: http://localhost:{port}/api")
@@ -83,7 +85,7 @@ if __name__ == '__main__':
     print(f"   Email: admin@hrms.com")
     print(f"   Password: admin123\n")
     
-    app.run(host='0.0.0.0', port=port, debug=True)
+    app.run(host='0.0.0.0', port=port, debug=debug)
 
 
 
